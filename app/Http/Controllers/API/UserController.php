@@ -58,15 +58,13 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), $rules, $customMessages);
 
         if ($validator->fails()) {
-            return response()->json([
-                'message' => $validator->errors(),
-                'type' => 'form'
-            ], 401);
+             return response()->json(['status' => 'Error', "error" => $validator->errors()->first()]);
         }
 
         $data = $request->all();
     
-
+        try{
+            DB::beginTransaction();
         $user = User::create([
             'user_type_id' => 2,
             'first_name' => $data['first_name'],
@@ -79,6 +77,10 @@ class UserController extends Controller
         $success = collect(['user' => $user,'token' => $user->createToken('joziActive')->accessToken]);
 
         return response()->json(['success' => $success], $this->successStatus);
+    } catch(\Exception $e){
+        DB::rollback();
+        return response()->json(['status' => 'Error', 'msg' => $e->getMessage()], 400);
+    }
 
     }
 

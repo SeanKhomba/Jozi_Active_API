@@ -45,10 +45,14 @@ Route::group(['middleware' => ['api', 'cors']], function () {
     /**
      * BOOKINGS
      */
-    Route::post('captureBooking', [BookingController::class, 'captureBooking']);
+  // Route::post('captureBooking', [BookingController::class, 'captureBooking']);
 
 
     Route::post('symlink', [UserController::class, 'symlink']);
 
 
 });
+
+Route::middleware('api.auth')->group(function () {
+    Route::post('captureBooking', [BookingController::class, 'captureBooking']);
+    });
