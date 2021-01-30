@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
@@ -58,25 +59,28 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), $rules, $customMessages);
 
         if ($validator->fails()) {
-             return response()->json(['status' => 'Error', "error" => $validator->errors()->first()]);
+             return response()->json(['status' => 'Error', "msg" => $validator->errors()->first()]);
         }
 
         $data = $request->all();
+
+       // return response()->json(['data' => $data], $this->successStatus);
+
     
         try{
             DB::beginTransaction();
         $user = User::create([
             'user_type_id' => 2,
-            'first_name' => $data['first_name'],
+            'first_name' => $data['name'],
             'surname' => $data['surname'],
             'email' => $data['email'],
-            'mobile_number' => $data['mobile_number'],
+            'mobile_number' => $data['phone'],
             'password' => bcrypt($data['password']),
         ]);
-
+        DB::commit();
         $success = collect(['user' => $user,'token' => $user->createToken('joziActive')->accessToken]);
 
-        return response()->json(['success' => $success], $this->successStatus);
+        return response()->json(['status' => 'Success','data' => $success], $this->successStatus);
     } catch(\Exception $e){
         DB::rollback();
         return response()->json(['status' => 'Error', 'msg' => $e->getMessage()], 400);

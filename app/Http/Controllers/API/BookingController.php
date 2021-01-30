@@ -74,6 +74,7 @@ class BookingController extends Controller
              $success = collect(['booking' => $booking]);
 
             }
+            DB::commit();   
              return response()->json(['status' => 'success','data' => $success], $this->successStatus);
          } catch(\Exception $e){
             DB::rollback();
