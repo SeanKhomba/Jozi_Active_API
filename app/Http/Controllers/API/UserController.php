@@ -28,6 +28,7 @@ class UserController extends Controller
 
             if (!$user) {
                 return response()->json([
+                    'status' => 'Error',
                     'message' => 'Your username and/or password do not match our records.',
                     'type' => 'form'
                 ], 401);
@@ -35,9 +36,10 @@ class UserController extends Controller
 
             $success = collect(['user' => $user, 'token' => $user->createToken('joziActive')->accessToken]);
 
-            return response()->json(['success' => $success], $this->successStatus);
+            return response()->json(['status' => 'Success','data'=>$success], $this->successStatus);
         } else {
             return response()->json([
+                'status' => 'Error',
                 'message' => 'Your username and/or password do not match our records.',
                 'type' => 'form'
             ], 401);
