@@ -41,6 +41,10 @@ Route::group(['middleware' => ['api', 'cors']], function () {
      * EVENTS
      */
     Route::post('getEvents', [EventController::class, 'getEvents']);
+    Route::get('getEventsCategory', [EventController::class, 'getEventsCategory']);
+    Route::get('getAllUpcomingEvent', [EventController::class, 'getAllUpcomingEvent']);
+    Route::post('getEventsByCat', [EventController::class, 'getEventsByCat']);
+    Route::post('getEventById', [EventController::class, 'getEventById']);
 
     /**
      * BOOKINGS

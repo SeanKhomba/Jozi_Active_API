@@ -25,24 +25,28 @@ class BookingController extends Controller
     public function captureBooking()
     {
         $data = \request()->all();
+       $loggedUser = auth('api')->user();
+        $loggedUser->id;
+        $data['transaction_id'] = 'randomtransid';
         $rules = array(
             'event_id' => 'required',
             'quantity' => 'required',
-            'user_id' => 'required',
+           
             'transaction_id' => 'required',
-            'amount' => 'required',
+           
         );
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
             return response()->json(['status' => 'Error', "error" => $validator->errors()->first()]);
         }
         try{
-            DB::beginTransaction();
             
+            DB::beginTransaction();
+            $events = Event::where('id', $data['event_id'])->where('quantity_available' , '!=' , '0')->get();
 
             $booking = Booking::Create([
                 'event_id' => $data['event_id'],
-                'user_id' => $data['user_id'],
+                'user_id' => $loggedUser->id,
                 'quantity' => $data['quantity'],
             ]);
 
@@ -50,8 +54,8 @@ class BookingController extends Controller
             $payment = Payment::Create([
                 'transaction_id' => $data['transaction_id'],
                 'payment_type_id' => 1,
-                'user_id' => $data['user_id'],
-                'amount' => $data['amount'],
+                'user_id' => $loggedUser->id,
+                'amount' => $events[0]->price,
                 'booking_id' => $booking->id,
             ]);
 
@@ -59,14 +63,14 @@ class BookingController extends Controller
                 'quantity_available' => DB::raw('quantity_available-'. $data['quantity'])
             ]);
 
-            $user = User::where('id', $data['user_id'])->get();
-            $bookingCount = Booking::where('user_id' , $data['user_id'])->get()->count();
+            $user = User::where('id', $loggedUser->id)->get();
+            $bookingCount = Booking::where('user_id' , $loggedUser->id)->get()->count();
 
             $tiers = Tier::get();
 
             foreach($tiers as $tier){
                 if($tier->minimum_bookings == $bookingCount){
-                    User::where('id', $data['user_id'])->update([
+                    User::where('id', $loggedUser->id)->update([
                     'tier_id' => $tier->id
                     ]);
                 }
